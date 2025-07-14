@@ -47,11 +47,12 @@ class LuckyNineModel():
         if instruction.IS_DRAW_CARD:
             self._current.draw_card(self._deck)
             if self._current.turns_taken == 2:
-                self._current._is_in_play = False
+                self._current.is_in_play = False
         else:
             if self._current.turns_taken == 0:
                 raise ValueError("Must take a card when hand is empty")
             self._totals[self._current] = self._current.halt()
+            self._current.is_in_play = False
             
         if not self.active_players():
             self._is_game_over = True
@@ -63,10 +64,11 @@ class LuckyNineModel():
         else:
             self._status = Status.HAS_WINNER
             
-        if self._totals[self._player_1] < self._totals[self._player_2]:
+        if abs(self._totals[self._player_1] - 9) < abs(self._totals[self._player_2] - 9):
             self._winner = self._player_1
-        else:
+        elif abs(self._totals[self._player_1] - 9) > abs(self._totals[self._player_2] - 9):
             self._winner = self._player_2
+        
 
 class Player():
     def __init__(self) -> None:
@@ -79,7 +81,7 @@ class Player():
         if not self._is_in_play:
             return None
         
-        card: LuckyNineCard = deck.pop(randint(0, len(deck)))
+        card: LuckyNineCard = deck.pop(randint(0, len(deck) - 1))
         self._turns_taken += 1
         self._total += card.value
         self._total %= 10
@@ -96,6 +98,10 @@ class Player():
     @property
     def is_in_play(self) -> bool:
         return self._is_in_play
+    
+    @is_in_play.setter
+    def is_in_play(self, value) -> None:
+        self._is_in_play = value
     
     @property
     def turns_taken(self) -> int:
@@ -171,4 +177,3 @@ class Suits(Enum):
     HEARTS = auto()
     SPADES = auto()
     
-model = LuckyNineModel()
