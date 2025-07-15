@@ -8,7 +8,6 @@ from typing import Dict, List
 class Instruction:
     IS_DRAW_CARD: bool
     
-@dataclass
 class Status(Enum):
     IN_PLAY = auto()
     EQUAL = auto()
@@ -64,11 +63,18 @@ class LuckyNineModel():
         else:
             self._status = Status.HAS_WINNER
             
-        if abs(self._totals[self._player_1] - 9) < abs(self._totals[self._player_2] - 9):
+        if self._totals[self._player_1] > self._totals[self._player_2]:
             self._winner = self._player_1
-        elif abs(self._totals[self._player_1] - 9) > abs(self._totals[self._player_2] - 9):
+        elif self._totals[self._player_1] < self._totals[self._player_2]:
             self._winner = self._player_2
         
+    @property
+    def player_1(self) -> Player:
+        return self._player_1
+        
+    @property
+    def player_2(self) -> Player:
+        return self._player_2
 
 class Player():
     def __init__(self) -> None:
@@ -107,7 +113,6 @@ class Player():
     def turns_taken(self) -> int:
         return self._turns_taken
         
-
 class LuckyNineCard():
     def __init__(self, suit: Suits, rank: Ranks) -> None:
         self._suit: Suits = suit
@@ -154,7 +159,6 @@ class LuckyNineCard():
     def value(self) -> int:
         return self._value
 
-@dataclass
 class Ranks(Enum):
     ACE = auto()
     TWO = auto()
@@ -170,7 +174,6 @@ class Ranks(Enum):
     QUEEN = auto()
     KING = auto()
     
-@dataclass
 class Suits(Enum):
     CLUBS = auto()
     DIAMONDS = auto()
