@@ -1,4 +1,4 @@
-from .model import LuckyNineModel, Instruction
+from .model import LuckyNineModel
 from .view import LuckyNineView
 from .control import Control
 

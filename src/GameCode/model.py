@@ -39,7 +39,7 @@ class LuckyNineModel():
     def next_active_player(self) -> None:
         sentinel: Player = self._current
         self._current = self._directed_adjacency_graph[self._current]
-        while not self._current is sentinel and not self._current.is_in_play:
+        while self._current is not sentinel and not self._current.is_in_play:
             self._current = self._directed_adjacency_graph[self._current]
         
     def turn_cycle(self, instruction: Instruction) -> None:
@@ -106,7 +106,7 @@ class Player():
         return self._is_in_play
     
     @is_in_play.setter
-    def is_in_play(self, value) -> None:
+    def is_in_play(self, value: bool) -> None:
         self._is_in_play = value
     
     @property
@@ -146,6 +146,7 @@ class LuckyNineCard():
             return 0
         elif self._rank is Ranks.KING:
             return 0
+        raise RuntimeError
     
     @property
     def suit(self) -> Suits:

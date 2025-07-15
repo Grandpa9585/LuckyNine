@@ -8,7 +8,7 @@ class Control:
         
     def game_loop(self) -> None:
         message_below = ''
-        while not self._model._is_game_over:
+        while not self._model._is_game_over:#type: ignore
             self._view.display_stats(self._model, message_below)
             user_input = self.user_input()
             while user_input is None:
