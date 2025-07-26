@@ -16,9 +16,9 @@ class LuckyNineView:
         print(message_below, end='')
         
     def display_winner(self, model: LuckyNineModel) -> None:
-        if model._status == Status.EQUAL:
+        if model._status is Status.EQUAL:
             print("There is a Tie!")
-        elif model._status == Status.HAS_WINNER:
+        elif model._status is Status.HAS_WINNER:
             print(f"The winner is {\
                 "player 1" if model._winner == model.player_1 else "player 2"}!")
             

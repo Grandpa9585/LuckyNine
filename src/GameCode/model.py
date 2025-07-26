@@ -46,6 +46,7 @@ class LuckyNineModel():
         if instruction.IS_DRAW_CARD:
             self._current.draw_card(self._deck)
             if self._current.turns_taken == 2:
+                self._totals[self._current] = self._current.halt()
                 self._current.is_in_play = False
         else:
             if self._current.turns_taken == 0:

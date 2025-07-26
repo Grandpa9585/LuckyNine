@@ -25,6 +25,17 @@ class LuckyNineModel:
         
         self._players_len = len(totals)
         
+    def end_of_game(self) -> None:
+        self._winner = None
+        self._status = Status.IN_PLAY
+        self._players_len = len(self._totals)
+        for player in self._totals:
+            player.is_in_play = True
+            self._totals[player] = 0
+            player.turns_taken = 0
+            self._deck.extend(player.hand)
+            player.clear_hand()
+        
     def next_active_player(self) -> None:
         sentinel: Player = self._current
         self._current = self._graph[self._current]
@@ -38,11 +49,13 @@ class LuckyNineModel:
                     return None
                 try:
                     self._current.draw_card(self._deck)
-                except IndexError:
-                    self._decide_winner()
+                except ValueError:
+                    self._current.is_in_play = False
                     return None
                 if self._current.turns_taken == self._max_hand:
+                    print("too bad max turns, youre betting")
                     self.current_turn(Instruction.BET)
+                self._current.turns_taken += 1
             case Instruction.BET:
                 if len(self._current.hand) == 0:
                     raise EmptyHandBettingError
@@ -55,18 +68,21 @@ class LuckyNineModel:
             self._decide_winner()
             
     def _decide_winner(self) -> None:
-        out: Player = self._current
-        for player in self._graph:
-            current_max: int = sum((card.value for card in out.hand)) % 10
-            current_val: int = sum((card.value for card in player.hand)) % 10
-            
-            if current_val > current_max:
-                out = player
-                self._status = Status.HAS_WINNER
-            elif current_val == current_max:
-                self._status = Status.EQUAL
-        
-        self._winner = out if self._status == Status.HAS_WINNER else None
+        # get a max
+        # invert the dict list to int player
+        # if there are other players, theres a tie
+        temp: Dict[int, List[Player]] = {}
+        temp_max: Player = max(self._totals, key=lambda x: self._totals[x])
+        for player in self._totals:
+            if self._totals[player] in temp:
+                temp[self._totals[player]].append(player)
+            else:
+                temp[self._totals[player]] = [player]
+        if len(temp[self._totals[temp_max]]) == 1:
+            self._status = Status.HAS_WINNER
+            self._winner = temp_max
+        else:
+            self._status = Status.EQUAL
         
     @property
     def deck_len(self) -> int:
@@ -75,19 +91,35 @@ class LuckyNineModel:
     @property
     def status(self) -> Status:
         return self._status
+    
+    @property
+    def winner(self) -> Player | None:
+        return self._winner
+    
+    @property
+    def current(self) -> Player:
+        return self._current
 
 
 class Player:
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
+        self._name: str = name
         self._hand: List[CardTemplate] = []
         self._is_in_play: bool = True
         self._turns_taken: int = 0
         
-    def draw_card(self, deck: List[CardTemplate]) -> None:
-        self.hand.append(deck.pop(randint(0, len(deck) - 1)))
+    def draw_card(self, deck: List[CardTemplate], is_normal_game_cycle:bool=True) -> None:
+        if is_normal_game_cycle:
+            self._hand.append(deck.pop(randint(0, len(deck) - 1)))
+            return None
+
+        self.hand.append(deck.pop())
         
     def play_hand(self) -> None:
         self._is_in_play = False
+        
+    def clear_hand(self) -> None:
+        self._hand.clear()
         
     @property
     def hand(self) -> List[CardTemplate]:
@@ -108,6 +140,11 @@ class Player:
     @turns_taken.setter
     def turns_taken(self, value: int) -> None:
         self._turns_taken = value
+        
+    @property
+    def name(self) -> str:
+        return self._name
+
 
 class CardTemplate(Protocol):
     _suit: Suit
@@ -194,7 +231,3 @@ class Rank(Enum):
     JACK = auto()
     QUEEN = auto()
     KING = auto()
-    
-class AnotherCard:
-    def __init__(self, rank:Rank) -> None:
-        self._rank = rank
